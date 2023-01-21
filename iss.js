@@ -25,7 +25,7 @@ const fetchMyIP = function(callback) {
 
     //parse and extract the IP address
     const data = JSON.parse(body).ip;
-    //console.log("This is the data:", data);
+    console.log("This is the data:", data);
 
     // pass that through to the callback (as the second argument) if there is no error
     callback(null, data);
@@ -40,6 +40,7 @@ const fetchCoordsByIP = function(ip, callback) {
       return callback(error, null);
     }
     const responseData = JSON.parse(body);
+    console.log("Response Data", responseData);
     if (!responseData.success) {
       const message = `${ip} - ${responseData.message}`;
       return callback(message);
@@ -61,6 +62,7 @@ const fetchCoordsByIP = function(ip, callback) {
 };
 
 const fetchISSFlyOverTimes = function(coords, callback) {
+  //console.log(JSON.parse(coords));
   request(`https://iss-flyover.herokuapp.com/json/?lat=${coords.latitude}&lon=${coords.longitude}`, (error, response, body) => {
     if (error) {
       return callback(error, null);
@@ -70,34 +72,29 @@ const fetchISSFlyOverTimes = function(coords, callback) {
       return;
     }
     const passes = JSON.parse(body).response;
-    callback(null, passes);
+    return callback(null, passes);
 
   });
 };
 
 const nextISSTimesForMyLocation = function(callback) {
-  let ip = fetchMyIP((error, ip) => {
+  fetchMyIP((error, ip) => {
     if (error) {
-      console.log("It didn't work!", error);
-      return;
+      return callback(error, null);
     }
-    let cords = fetchCoordsByIP(ip, (error, data) => {
+    fetchCoordsByIP(ip, (error, data) => {
       if (error) {
-        console.log("It didn't work!", error);
-        return;
+        return callback(error, null);
       }
-      let flyOverTimes = fetchISSFlyOverTimes(data, (error, passTimes) => {
+      fetchISSFlyOverTimes(data, (error, passTimes) => {
         if (error) {
-          console.log("It didn't work!", error);
-          return;
+          return callback(error, null);
         }
         callback(error, passTimes);
       });
     });
+
   });
-
-
-
 
 };
 
